@@ -22,8 +22,15 @@ class MetricsPusher:
             lines.append(f"mock_p95_seconds{{mock=\"{name}\"}} {m['p95']:.6f}")
             lines.append(f"mock_p99_seconds{{mock=\"{name}\"}} {m['p99']:.6f}")
             lines.append(f"mock_max_seconds{{mock=\"{name}\"}} {m['max']:.6f}")
-            if hasattr(mock, 'delay') and isinstance(mock.delay, (int, float)):
-                lines.append(f"mock_configured_delay{{mock=\"{name}\"}} {mock.delay}")
+
+            enabled_val = 1 if getattr(mock, "enabled", False) else 0
+            lines.append(
+                f'mock_config{{mock="{name}", '
+                f'delay="{mock.delay}", '
+                f'rate_limit="{mock.rate_limit}", '
+                f'rate_limit_period="{mock.rate_limit_period}"}} {enabled_val}'
+            )
+
         if not lines:
             return
         payload = "\n".join(lines) + "\n"

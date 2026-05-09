@@ -4,7 +4,7 @@ from common.base_mock import Mock
 
 class POST_create_order(Mock):
     method = "POST"
-    path = "/api/orders"
+    path = "/api/orders/{order_id}"
     delay = 0.2
     enabled = True
 
@@ -13,6 +13,13 @@ class POST_create_order(Mock):
             {"order_id": 1001, "status": "created", "amount": 1500},
             {"order_id": 1002, "status": "created", "amount": 2500},
         ]
-        return random.choice(responses)
+        if request.query_params.get("add"):
+            for i in responses:
+                i["amount"] = i["amount"] + int(request.query_params["add"])
+        if request.path_params["order_id"] == "1001":
+            return responses[0]
+        elif request.path_params["order_id"] == "1002":
+            return responses[1]
 
-mock = POST_create_order(mock_name="first_system.POST_create_order")
+
+mock = POST_create_order()

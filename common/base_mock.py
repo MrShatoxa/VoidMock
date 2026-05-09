@@ -1,6 +1,10 @@
 import asyncio
 import time
+import random
 from abc import ABC, abstractmethod
+from pathlib import Path
+import json
+import inspect
 from collections import deque
 from fastapi import Request, Response
 from fastapi.responses import JSONResponse
@@ -9,13 +13,15 @@ class Mock(ABC):
 
     method = "GET"
     path = None
-    delay = 0.0
+    delay = 0
     enabled: bool = True
+    rate_limit = 0 # например 10 - максимум 10 вызовов за период
+    rate_limit_period = 1 # период в секундах (по умолчанию 1 секунда)
 
-    def __init__(self, mock_name: str = None):
-        self.mock_name = mock_name
+    def __init__(self):
         self.call_count = 0
         self._response_times: deque = deque()
+        self._call_timestamps: deque = deque()
 
     @abstractmethod
     async def get_response(self, request: Request):
@@ -23,6 +29,19 @@ class Mock(ABC):
         pass
 
     async def handle(self, request: Request) -> Response:
+
+        if self.rate_limit:
+            now = time.monotonic()
+            # Удаляем записи старше периода
+            while self._call_timestamps and self._call_timestamps[0] < now - self.rate_limit_period:
+                self._call_timestamps.popleft()
+            if len(self._call_timestamps) >= self.rate_limit:
+                return JSONResponse(
+                    {"error": "Rate limit exceeded", "limit": self.rate_limit, "period": self.rate_limit_period},
+                    status_code=429
+                )
+            self._call_timestamps.append(now)
+
         if not self.enabled:
             return JSONResponse({"error": "Mock disabled"}, status_code=503)
 
@@ -30,7 +49,10 @@ class Mock(ABC):
         self.call_count += 1
 
         # Задержка
-        delay_sec = float(self.delay)
+        if isinstance(self.delay, (tuple, list)) and len(self.delay) == 2:
+            delay_sec = random.uniform(self.delay[0], self.delay[1])
+        else:
+            delay_sec = float(self.delay)
         if delay_sec > 0:
             await asyncio.sleep(delay_sec)
 
@@ -64,3 +86,22 @@ class Mock(ABC):
             "p99": p(99),
             "max": recent[-1],
         }
+
+    def load_data_file(self, filename: str) -> dict | list | str:
+        """Загружает данные из файла в папке data/ относительно текущего мока."""
+        data_file = Path(self._mock_base_dir) / "data" / filename
+        with open(data_file, "r", encoding="utf-8") as f:
+            if filename.endswith(".json"):
+                return json.load(f)
+            return f.read()
+
+    def get_data_files_list(self, extension: str = None):
+        """Возвращает список имён файлов в папке data.
+        Если указано расширение (например, '.json'), фильтрует по нему."""
+        data_dir = Path(self._mock_base_dir) / "data"
+        if not data_dir.exists():
+            return []
+        if extension:
+            ext = extension if extension.startswith('.') else f'.{extension}'
+            return [f.name for f in data_dir.iterdir() if f.is_file() and f.suffix == ext]
+        return [f.name for f in data_dir.iterdir() if f.is_file()]
