@@ -32,9 +32,8 @@ class Mock(ABC):
 
         if self.rate_limit:
             now = time.monotonic()
-            # Удаляем записи старше периода
             while self._call_timestamps and self._call_timestamps[0] < now - self.rate_limit_period:
-                self._call_timestamps.popleft()
+                self._call_timestamps.popleft() # Удаляем записи старше периода
             if len(self._call_timestamps) >= self.rate_limit:
                 return JSONResponse(
                     {"error": "Rate limit exceeded", "limit": self.rate_limit, "period": self.rate_limit_period},
@@ -45,20 +44,24 @@ class Mock(ABC):
         if not self.enabled:
             return JSONResponse({"error": "Mock disabled"}, status_code=503)
 
-        start = time.monotonic()
         self.call_count += 1
 
         # Задержка
         if isinstance(self.delay, (tuple, list)) and len(self.delay) == 2:
-            delay_sec = random.uniform(self.delay[0], self.delay[1])
+            target_total = random.uniform(self.delay[0], self.delay[1])
         else:
-            delay_sec = float(self.delay)
-        if delay_sec > 0:
-            await asyncio.sleep(delay_sec)
+            target_total = float(self.delay)
+
+        start = time.monotonic()
 
         response_data = await self.get_response(request)
-        elapsed = time.monotonic() - start
-        self._response_times.append((time.time(), elapsed))
+        elapsed_logic = time.monotonic() - start
+        remaining = target_total - elapsed_logic
+        if remaining > 0:
+            await asyncio.sleep(remaining)
+
+        elapsed_total = time.monotonic() - start
+        self._response_times.append((time.time(), elapsed_total))
 
         # Преобразование в Response
         if isinstance(response_data, Response):
