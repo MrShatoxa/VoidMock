@@ -5,7 +5,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 class MetricsPusher:
-    def __init__(self, push_gateway_url: str = "http://localhost:9091/metrics/job/mocks"):
+    def __init__(self, push_gateway_url: str = "http://localhost:8428/api/v1/import/prometheus"):
         self.url = push_gateway_url
         self.mocks = []
 
@@ -37,7 +37,7 @@ class MetricsPusher:
         try:
             async with aiohttp.ClientSession() as session:
                 resp = await session.post(self.url, data=payload)
-                if resp.status != 200:
+                if resp.status not in [200, 204]:
                     logger.warning(f"VM push failed: {resp.status}")
         except Exception as e:
             logger.error(f"Metrics push error: {e}")
