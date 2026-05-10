@@ -16,20 +16,15 @@ class MetricsPusher:
         lines = []
         for mock in self.mocks:
             m = mock.get_metrics_last_minute()
-            name = mock.mock_name.replace(".", "_")
-            lines.append(f"mock_calls_total{{mock=\"{name}\"}} {m['calls']}")
-            lines.append(f"mock_p90_seconds{{mock=\"{name}\"}} {m['p90']:.6f}")
-            lines.append(f"mock_p95_seconds{{mock=\"{name}\"}} {m['p95']:.6f}")
-            lines.append(f"mock_p99_seconds{{mock=\"{name}\"}} {m['p99']:.6f}")
-            lines.append(f"mock_max_seconds{{mock=\"{name}\"}} {m['max']:.6f}")
+            parts = mock.mock_name.split(".", 1)
+            lines.append(f'mock_calls_total{{system="{parts[0]}", mock="{parts[1]}"}} {m["calls"]}')
+            lines.append(f'mock_p90_seconds{{system="{parts[0]}", mock="{parts[1]}"}} {m["p90"]:.6f}')
+            lines.append(f'mock_p95_seconds{{system="{parts[0]}", mock="{parts[1]}"}} {m["p95"]:.6f}')
+            lines.append(f'mock_p99_seconds{{system="{parts[0]}", mock="{parts[1]}"}} {m["p99"]:.6f}')
+            lines.append(f'mock_max_seconds{{system="{parts[0]}", mock="{parts[1]}"}} {m["max"]:.6f}')
 
             enabled_val = 1 if getattr(mock, "enabled", False) else 0
-            lines.append(
-                f'mock_config{{mock="{name}", '
-                f'delay="{mock.delay}", '
-                f'rate_limit="{mock.rate_limit}", '
-                f'rate_limit_period="{mock.rate_limit_period}"}} {enabled_val}'
-            )
+            lines.append(f'mock_config{{system="{parts[0]}", mock="{parts[1]}", delay="{mock.delay}", rate_limit="{mock.rate_limit}", rate_limit_period="{mock.rate_limit_period}"}} {enabled_val}')
 
         if not lines:
             return
