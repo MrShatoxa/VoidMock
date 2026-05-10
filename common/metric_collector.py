@@ -17,7 +17,8 @@ class MetricsPusher:
         for mock in self.mocks:
             m = mock.get_metrics_last_minute()
             parts = mock.mock_name.split(".", 1)
-            lines.append(f'mock_calls_total{{system="{parts[0]}", mock="{parts[1]}"}} {m["calls"]}')
+            lines.append(f'mock_calls_total{{system="{parts[0]}", mock="{parts[1]}"}} {mock.call_count}')
+            lines.append(f'mock_tpm{{system="{parts[0]}", mock="{parts[1]}"}} {m["calls"]}')
             lines.append(f'mock_p90_seconds{{system="{parts[0]}", mock="{parts[1]}"}} {m["p90"]:.6f}')
             lines.append(f'mock_p95_seconds{{system="{parts[0]}", mock="{parts[1]}"}} {m["p95"]:.6f}')
             lines.append(f'mock_p99_seconds{{system="{parts[0]}", mock="{parts[1]}"}} {m["p99"]:.6f}')
