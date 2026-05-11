@@ -85,7 +85,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "mock_calls_total{system=\"$system\"}",
+          "expr": "mock_calls_total{system=\"$system\", mock=~\"$mock\"}",
           "format": "time_series",
           "instant": true,
           "legendFormat": "{{mock}}",
@@ -267,7 +267,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "mock_config{system=\"$system\"}",
+          "expr": "mock_config{system=\"$system\", mock=~\"$mock\"}",
           "format": "table",
           "instant": true,
           "legendFormat": "__auto",
@@ -399,7 +399,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "mock_tpm{system=\"$system\"}",
+          "expr": "mock_tpm{system=\"$system\", mock=~\"$mock\"}",
           "legendFormat": "{{mock}}",
           "range": true,
           "refId": "A"
@@ -500,8 +500,8 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "editorMode": "builder",
-          "expr": "mock_calls_total{system=\"$system\"}",
+          "editorMode": "code",
+          "expr": "mock_calls_total{system=\"$system\", mock=~\"$mock\"}",
           "legendFormat": "{{mock}}",
           "range": true,
           "refId": "A"
@@ -604,9 +604,9 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "editorMode": "builder",
+          "editorMode": "code",
           "exemplar": true,
-          "expr": "mock_tpm{system=\"$system\"} / 60",
+          "expr": "mock_tpm{system=\"$system\", mock=~\"$mock\"} / 60",
           "legendFormat": "{{mock}}",
           "range": true,
           "refId": "A"
@@ -709,8 +709,8 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "editorMode": "builder",
-          "expr": "mock_max_seconds{system=\"$system\"}",
+          "editorMode": "code",
+          "expr": "mock_max_seconds{system=\"$system\", mock=~\"$mock\"}",
           "legendFormat": "{{mock}} - max",
           "range": true,
           "refId": "A"
@@ -720,8 +720,8 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "editorMode": "builder",
-          "expr": "mock_p99_seconds{system=\"$system\"}",
+          "editorMode": "code",
+          "expr": "mock_p99_seconds{system=\"$system\", mock=~\"$mock\"}",
           "instant": false,
           "legendFormat": "{{mock}} 99%",
           "range": true,
@@ -732,8 +732,8 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "editorMode": "builder",
-          "expr": "mock_p95_seconds{system=\"$system\"}",
+          "editorMode": "code",
+          "expr": "mock_p95_seconds{system=\"$system\", mock=~\"$mock\"}",
           "instant": false,
           "legendFormat": "{{mock}} 95%",
           "range": true,
@@ -744,8 +744,8 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "editorMode": "builder",
-          "expr": "mock_p90_seconds{system=\"$system\"}",
+          "editorMode": "code",
+          "expr": "mock_p90_seconds{system=\"$system\", mock=~\"$mock\"}",
           "instant": false,
           "legendFormat": "{{mock}} 90%",
           "range": true,
@@ -795,17 +795,45 @@
         "regex": "/([^,\\s]+)/g",
         "regexApplyTo": "value",
         "type": "query"
+      },
+      {
+        "current": {
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "aflmrhm384jk0a"
+        },
+        "definition": "label_values(mock_config{system=\"$system\"},mock)",
+        "includeAll": true,
+        "multi": true,
+        "name": "mock",
+        "options": [],
+        "query": {
+          "qryType": 1,
+          "query": "label_values(mock_config{system=\"$system\"},mock)",
+          "refId": "PrometheusVariableQueryEditor-VariableQuery"
+        },
+        "refresh": 1,
+        "regex": "",
+        "regexApplyTo": "value",
+        "type": "query"
       }
     ]
   },
   "time": {
-    "from": "now-30m",
+    "from": "now-1h",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "browser",
   "title": "VoidMocks",
   "uid": "ad4hsrx",
-  "version": 8,
+  "version": 12,
   "weekStart": ""
 }
