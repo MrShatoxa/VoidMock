@@ -78,7 +78,7 @@ def run_single_system(name):
         sys.exit(1)
     cfg = SYSTEMS[name]
     app = create_app(cfg["mocks_dir"])
-    uvicorn.run(app, host="127.0.0.1", port=cfg["port"], reload=False)
+    uvicorn.run(app, host="0.0.0.0", port=cfg["port"], log_level="error", reload=False)
 
 def main():
     parser = argparse.ArgumentParser(description="Управление мок-системами")
